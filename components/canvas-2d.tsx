@@ -130,7 +130,15 @@ export default function Canvas2D({ selectedTool, selectedColor, lineThickness }:
   const drawObjects = useCallback(() => {
     if (!gl || !program || !canvasRef.current) return
 
+    // Clear with theme-appropriate background
+    const isDark = theme === 'dark'
+    if (isDark) {
+      gl.clearColor(0.05, 0.05, 0.1, 1.0) // Dark background
+    } else {
+      gl.clearColor(1.0, 1.0, 1.0, 1.0) // Light background
+    }
     gl.clear(gl.COLOR_BUFFER_BIT)
+    
     const positionLocation = gl.getAttribLocation(program, "a_position")
     const colorLocation = gl.getUniformLocation(program, "u_color")
     const resolutionLocation = gl.getUniformLocation(program, "u_resolution")
@@ -199,7 +207,7 @@ export default function Canvas2D({ selectedTool, selectedColor, lineThickness }:
         gl.drawArrays(gl.LINE_STRIP, 0, segments + 1)
       }
     })
-  }, [gl, program, objects, currentPreview])
+  }, [gl, program, objects, currentPreview, theme])
 
   useEffect(() => {
     drawObjects()
@@ -327,10 +335,16 @@ export default function Canvas2D({ selectedTool, selectedColor, lineThickness }:
       if (gl && program) {
         gl.useProgram(program)
         gl.viewport(0, 0, 800, 600)
-        gl.clearColor(1.0, 1.0, 1.0, 1.0)
+        // Set background color based on theme
+        const isDark = theme === 'dark'
+        if (isDark) {
+          gl.clearColor(0.05, 0.05, 0.1, 1.0) // Dark background
+        } else {
+          gl.clearColor(1.0, 1.0, 1.0, 1.0) // Light background
+        }
         gl.clear(gl.COLOR_BUFFER_BIT)
       }
-    }, [gl, program])
+    }, [gl, program, theme])
   }
 
   useWebGLSetup(gl, program)

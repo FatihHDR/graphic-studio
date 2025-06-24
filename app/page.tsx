@@ -148,12 +148,12 @@ export default function GraphicsApp() {
 
         {/* Main Canvas Area */}
         <div className="flex-1 flex flex-col">
-          <div className="bg-white border-b border-slate-200 px-4 py-2">
+          <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 py-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <span className="text-sm font-medium text-slate-600">Mode: {activeModule.toUpperCase()}</span>
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Mode: {activeModule.toUpperCase()}</span>
                 {activeModule === "2d" && (
-                  <span className="text-sm text-slate-500">
+                  <span className="text-sm text-slate-500 dark:text-slate-400">
                     Tool: {selectedTool.charAt(0).toUpperCase() + selectedTool.slice(1)}
                   </span>
                 )}
@@ -169,8 +169,8 @@ export default function GraphicsApp() {
             </div>
           </div>
 
-          <div className="flex-1 bg-slate-50 p-4">
-            <div className="h-full bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+          <div className="flex-1 bg-slate-50 dark:bg-slate-800 p-4">
+            <div className="h-full bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
               {activeModule === "2d" ? (
                 <Canvas2D selectedTool={selectedTool} selectedColor={selectedColor} lineThickness={lineThickness} />
               ) : (
@@ -181,7 +181,7 @@ export default function GraphicsApp() {
         </div>
 
         {/* Right Sidebar - Properties */}
-        <div className="w-64 bg-white border-l border-slate-200 overflow-y-auto">
+        <div className="w-64 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 overflow-y-auto">
           <div className="p-4">
             <Card>
               <CardHeader className="pb-3">
