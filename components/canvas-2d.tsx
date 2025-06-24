@@ -30,6 +30,7 @@ export default function Canvas2D({ selectedTool, selectedColor, lineThickness }:
   const [isDrawing, setIsDrawing] = useState(false)
   const [startPoint, setStartPoint] = useState<Point | null>(null)
   const [currentPreview, setCurrentPreview] = useState<DrawnObject | null>(null)
+  const { theme } = useTheme()
 
   // Initialize WebGL
   useEffect(() => {
