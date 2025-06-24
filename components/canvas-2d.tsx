@@ -28,6 +28,7 @@ export default function Canvas2D({ selectedTool, selectedColor, lineThickness }:
   const [objects, setObjects] = useState<DrawnObject[]>([])
   const [isDrawing, setIsDrawing] = useState(false)
   const [startPoint, setStartPoint] = useState<Point | null>(null)
+  const [currentPreview, setCurrentPreview] = useState<DrawnObject | null>(null)
 
   // Initialize WebGL
   useEffect(() => {
@@ -134,7 +135,15 @@ export default function Canvas2D({ selectedTool, selectedColor, lineThickness }:
 
     gl.uniform2f(resolutionLocation, canvasRef.current.width, canvasRef.current.height)
 
-    objects.forEach((obj) => {
+    // Draw all completed objects
+    const allObjects = [...objects]
+    
+    // Add preview object if drawing
+    if (currentPreview) {
+      allObjects.push(currentPreview)
+    }
+
+    allObjects.forEach((obj) => {
       const rgb = hexToRgb(obj.color)
       gl.uniform4f(colorLocation, rgb.r, rgb.g, rgb.b, 1.0)
 
