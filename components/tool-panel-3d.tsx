@@ -3,7 +3,7 @@
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
-import { Upload, RotateCcw, Box, Pyramid, Trash2, Eye, EyeOff } from "lucide-react"
+import { Upload, RotateCcw, Box, Pyramid, Trash2, Eye, EyeOff, Circle, Cylinder, Donut, Square } from "lucide-react"
 
 export default function ToolPanel3D() {
   const handleAddCube = () => {
@@ -15,6 +15,30 @@ export default function ToolPanel3D() {
   const handleAddPyramid = () => {
     if (typeof window !== 'undefined' && (window as any).canvas3DActions) {
       (window as any).canvas3DActions.addPyramid()
+    }
+  }
+
+  const handleAddSphere = () => {
+    if (typeof window !== 'undefined' && (window as any).canvas3DActions) {
+      (window as any).canvas3DActions.addSphere()
+    }
+  }
+
+  const handleAddCylinder = () => {
+    if (typeof window !== 'undefined' && (window as any).canvas3DActions) {
+      (window as any).canvas3DActions.addCylinder()
+    }
+  }
+
+  const handleAddTorus = () => {
+    if (typeof window !== 'undefined' && (window as any).canvas3DActions) {
+      (window as any).canvas3DActions.addTorus()
+    }
+  }
+
+  const handleAddPlane = () => {
+    if (typeof window !== 'undefined' && (window as any).canvas3DActions) {
+      (window as any).canvas3DActions.addPlane()
     }
   }
 
@@ -41,14 +65,30 @@ export default function ToolPanel3D() {
       {/* Add 3D Objects */}
       <div>
         <Label className="text-sm font-medium mb-2 block">Add 3D Objects</Label>
-        <div className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           <Button variant="outline" size="sm" className="justify-start" onClick={handleAddCube}>
             <Box className="w-4 h-4 mr-2" />
-            Add Cube
+            Cube
           </Button>
           <Button variant="outline" size="sm" className="justify-start" onClick={handleAddPyramid}>
             <Pyramid className="w-4 h-4 mr-2" />
-            Add Pyramid
+            Pyramid
+          </Button>
+          <Button variant="outline" size="sm" className="justify-start" onClick={handleAddSphere}>
+            <Circle className="w-4 h-4 mr-2" />
+            Sphere
+          </Button>
+          <Button variant="outline" size="sm" className="justify-start" onClick={handleAddCylinder}>
+            <Cylinder className="w-4 h-4 mr-2" />
+            Cylinder
+          </Button>
+          <Button variant="outline" size="sm" className="justify-start" onClick={handleAddTorus}>
+            <Donut className="w-4 h-4 mr-2" />
+            Torus
+          </Button>
+          <Button variant="outline" size="sm" className="justify-start" onClick={handleAddPlane}>
+            <Square className="w-4 h-4 mr-2" />
+            Plane
           </Button>
         </div>
       </div>
