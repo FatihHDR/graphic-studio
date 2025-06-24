@@ -1,6 +1,13 @@
 import type { Metadata } from 'next'
+import { Montserrat } from 'next/font/google'
 import './globals.css'
 import { ThemeProvider } from '@/components/theme-provider'
+
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-montserrat',
+})
 
 export const metadata: Metadata = {
   title: 'Graphics Studio 3D',
@@ -21,7 +28,7 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#000000" />
       </head>
-      <body className="antialiased">
+      <body className={`${montserrat.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
