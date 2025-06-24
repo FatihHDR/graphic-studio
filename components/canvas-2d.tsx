@@ -343,6 +343,7 @@ export default function Canvas2D({ selectedTool, selectedColor, lineThickness }:
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
+        onContextMenu={(e) => e.preventDefault()}
       />
       {isDrawing && (
         <div className="absolute top-4 left-4 bg-blue-100 text-blue-800 px-3 py-1 rounded-md text-sm">
