@@ -1,10 +1,36 @@
 "use client"
 
-import { useRef, useState, useEffect } from "react"
+import { useRef, useState, useEffect, createContext, useContext } from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
 import type { Mesh } from "three"
 import * as THREE from "three"
+
+// Context to manage global drag state
+const DragContext = createContext<{
+  isDragging: boolean
+  setIsDragging: (dragging: boolean) => void
+}>({
+  isDragging: false,
+  setIsDragging: () => {}
+})
+
+// Custom OrbitControls that can be disabled during dragging
+function CustomOrbitControls() {
+  const { isDragging } = useContext(DragContext)
+  
+  return (
+    <OrbitControls
+      enabled={!isDragging}
+      enablePan={true}
+      enableZoom={true}
+      enableRotate={true}
+      maxPolarAngle={Math.PI / 2}
+      minDistance={3}
+      maxDistance={20}
+    />
+  )
+}
 
 // WASD Camera Controls Component
 function WASDControls() {
@@ -90,14 +116,15 @@ function InfiniteGrid() {
 function DraggableObject({ children, position, onDrag, id }: any) {
   const meshRef = useRef<any>(null)
   const { camera, gl } = useThree()
-  const [isDragging, setIsDragging] = useState(false)
+  const [isLocalDragging, setIsLocalDragging] = useState(false)
+  const { setIsDragging } = useContext(DragContext)
   const [dragPlane] = useState(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), 0))
   const [intersection] = useState(() => new THREE.Vector3())
   const [offset] = useState(() => new THREE.Vector3())
 
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
-      if (!isDragging) return
+      if (!isLocalDragging) return
       
       const raycaster = new THREE.Raycaster()
       const mouse = new THREE.Vector2(
@@ -114,11 +141,12 @@ function DraggableObject({ children, position, onDrag, id }: any) {
     }
 
     const handleMouseUp = () => {
-      setIsDragging(false)
+      setIsLocalDragging(false)
+      setIsDragging(false) // Update global drag state
       gl.domElement.style.cursor = 'auto'
     }
 
-    if (isDragging) {
+    if (isLocalDragging) {
       document.addEventListener('mousemove', handleMouseMove)
       document.addEventListener('mouseup', handleMouseUp)
     }
@@ -127,11 +155,12 @@ function DraggableObject({ children, position, onDrag, id }: any) {
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [isDragging, camera, gl, dragPlane, intersection, offset, id, onDrag])
+  }, [isLocalDragging, camera, gl, dragPlane, intersection, offset, id, onDrag, setIsDragging])
 
   const onPointerDown = (event: any) => {
     event.stopPropagation()
-    setIsDragging(true)
+    setIsLocalDragging(true)
+    setIsDragging(true) // Update global drag state
     gl.domElement.style.cursor = 'grabbing'
     
     // Calculate offset for smooth dragging
@@ -353,9 +382,10 @@ function Scene() {
       selected: false,
     },
   ])
-  const [isDragging, setIsDragging] = useState(false)
+  const [isObjectBeingDragged, setIsObjectBeingDragged] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [selectedObjectId, setSelectedObjectId] = useState<number | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
 
   const handleObjectClick = (id: number) => {
     setObjects((prev) =>
@@ -486,7 +516,7 @@ function Scene() {
   }
 
   return (
-    <>
+    <DragContext.Provider value={{ isDragging, setIsDragging }}>
       {/* Info Panel */}
       <div className="absolute top-4 right-4 z-10 bg-white/90 dark:bg-slate-950/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border dark:border-slate-800">
         <div className="text-sm text-gray-700 dark:text-slate-300">
@@ -558,16 +588,9 @@ function Scene() {
         {/* WASD Camera Controls */}
         <WASDControls />
 
-        <OrbitControls
-          enablePan={true}
-          enableZoom={true}
-          enableRotate={true}
-          maxPolarAngle={Math.PI / 2}
-          minDistance={3}
-          maxDistance={20}
-        />
+        <CustomOrbitControls />
       </Canvas>
-    </>
+    </DragContext.Provider>
   )
 }
 
