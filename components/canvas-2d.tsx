@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useRef, useEffect, useState, useCallback } from "react"
+import { useTheme } from "next-themes"
 
 interface Canvas2DProps {
   selectedTool: string
@@ -334,19 +335,19 @@ export default function Canvas2D({ selectedTool, selectedColor, lineThickness }:
   useWebGLSetup(gl, program)
 
   return (
-    <div className="w-full h-full flex items-center justify-center bg-gray-50">
+    <div className="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-slate-800">
       <canvas
         ref={canvasRef}
         width={800}
         height={600}
-        className="border border-gray-300 bg-white cursor-crosshair"
+        className="border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 cursor-crosshair"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onContextMenu={(e) => e.preventDefault()}
       />
       {isDrawing && (
-        <div className="absolute top-4 left-4 bg-blue-100 text-blue-800 px-3 py-1 rounded-md text-sm">
+        <div className="absolute top-4 left-4 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-md text-sm">
           {selectedTool === "line" && "Drag to draw line"}
           {selectedTool === "rectangle" && "Drag to draw rectangle"}
           {selectedTool === "ellipse" && "Drag to draw ellipse"}

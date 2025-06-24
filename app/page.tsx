@@ -14,6 +14,7 @@ import TransformPanel from "@/components/transform-panel"
 import WindowingPanel from "@/components/windowing-panel"
 import LightingPanel from "@/components/lighting-panel"
 import { Palette, Move3D, Lightbulb, Settings, Info } from "lucide-react"
+import { ModeToggle } from "@/components/mode-toggle"
 
 export default function GraphicsApp() {
   const [activeModule, setActiveModule] = useState("2d")
@@ -22,18 +23,19 @@ export default function GraphicsApp() {
   const [lineThickness, setLineThickness] = useState(2)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 shadow-sm">
+      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-sm">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-slate-900">Graphics Studio 3D</h1>
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Graphics Studio 3D</h1>
               <Badge variant="outline" className="text-xs">
                 Professional 3D Graphics Lab
               </Badge>
             </div>
             <div className="flex items-center space-x-2">
+              <ModeToggle />
               <Button variant="outline" size="sm">
                 <Info className="w-4 h-4 mr-2" />
                 Help
@@ -49,7 +51,7 @@ export default function GraphicsApp() {
 
       <div className="flex h-[calc(100vh-80px)]">
         {/* Left Sidebar */}
-        <div className="w-80 bg-white border-r border-slate-200 overflow-y-auto">
+        <div className="w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 overflow-y-auto">
           <div className="p-4">
             <Tabs value={activeModule} onValueChange={setActiveModule} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
