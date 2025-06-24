@@ -197,7 +197,7 @@ export default function Canvas2D({ selectedTool, selectedColor, lineThickness }:
         gl.drawArrays(gl.LINE_STRIP, 0, segments + 1)
       }
     })
-  }, [gl, program, objects])
+  }, [gl, program, objects, currentPreview])
 
   useEffect(() => {
     drawObjects()
