@@ -1,10 +1,80 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, useEffect } from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
 import type { Mesh } from "three"
 import * as THREE from "three"
+
+// WASD Camera Controls Component
+function WASDControls() {
+  const { camera } = useThree()
+  const keys = useRef<{ [key: string]: boolean }>({})
+  const moveSpeed = 5 // Units per second
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      keys.current[event.code.toLowerCase()] = true
+    }
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+      keys.current[event.code.toLowerCase()] = false
+    }
+
+    const handleFocus = () => {
+      // Clear all keys when window loses focus to prevent stuck keys
+      keys.current = {}
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('blur', handleFocus)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+      window.removeEventListener('blur', handleFocus)
+    }
+  }, [])
+
+  useFrame((state, delta) => {
+    const moveDistance = moveSpeed * delta
+    const direction = new THREE.Vector3()
+
+    // Get camera's forward/right vectors
+    camera.getWorldDirection(direction)
+    const forward = direction.clone()
+    const right = new THREE.Vector3().crossVectors(forward, camera.up).normalize()
+
+    // WASD movement
+    if (keys.current['keyw']) {
+      // W - Move forward
+      camera.position.add(forward.multiplyScalar(moveDistance))
+    }
+    if (keys.current['keys']) {
+      // S - Move backward
+      camera.position.add(forward.multiplyScalar(-moveDistance))
+    }
+    if (keys.current['keya']) {
+      // A - Move left
+      camera.position.add(right.multiplyScalar(-moveDistance))
+    }
+    if (keys.current['keyd']) {
+      // D - Move right
+      camera.position.add(right.multiplyScalar(moveDistance))
+    }
+    if (keys.current['space']) {
+      // Space - Move up
+      camera.position.y += moveDistance
+    }
+    if (keys.current['shiftleft'] || keys.current['shiftright']) {
+      // Shift - Move down
+      camera.position.y -= moveDistance
+    }
+  })
+
+  return null
+}
 
 // Custom infinite grid component
 function InfiniteGrid() {
@@ -25,6 +95,40 @@ function DraggableObject({ children, position, onDrag, id }: any) {
   const [intersection] = useState(() => new THREE.Vector3())
   const [offset] = useState(() => new THREE.Vector3())
 
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!isDragging) return
+      
+      const raycaster = new THREE.Raycaster()
+      const mouse = new THREE.Vector2(
+        (event.clientX / gl.domElement.clientWidth) * 2 - 1,
+        -(event.clientY / gl.domElement.clientHeight) * 2 + 1
+      )
+      raycaster.setFromCamera(mouse, camera)
+      
+      if (raycaster.ray.intersectPlane(dragPlane, intersection)) {
+        const newPosition = intersection.sub(offset)
+        meshRef.current.position.copy(newPosition)
+        onDrag(id, [newPosition.x, newPosition.y, newPosition.z])
+      }
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+      gl.domElement.style.cursor = 'auto'
+    }
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDragging, camera, gl, dragPlane, intersection, offset, id, onDrag])
+
   const onPointerDown = (event: any) => {
     event.stopPropagation()
     setIsDragging(true)
@@ -43,35 +147,11 @@ function DraggableObject({ children, position, onDrag, id }: any) {
     }
   }
 
-  const onPointerMove = (event: any) => {
-    if (!isDragging) return
-    
-    const raycaster = new THREE.Raycaster()
-    const mouse = new THREE.Vector2(
-      (event.clientX / gl.domElement.clientWidth) * 2 - 1,
-      -(event.clientY / gl.domElement.clientHeight) * 2 + 1
-    )
-    raycaster.setFromCamera(mouse, camera)
-    
-    if (raycaster.ray.intersectPlane(dragPlane, intersection)) {
-      const newPosition = intersection.sub(offset)
-      meshRef.current.position.copy(newPosition)
-      onDrag(id, [newPosition.x, newPosition.y, newPosition.z])
-    }
-  }
-
-  const onPointerUp = () => {
-    setIsDragging(false)
-    gl.domElement.style.cursor = 'auto'
-  }
-
   return (
     <group
       ref={meshRef}
       position={position}
       onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
     >
       {children}
     </group>
@@ -474,6 +554,9 @@ function Scene() {
 
         <InfiniteGrid />
         <axesHelper args={[3]} />
+        
+        {/* WASD Camera Controls */}
+        <WASDControls />
 
         <OrbitControls
           enablePan={true}
