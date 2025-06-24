@@ -17,10 +17,11 @@ function InfiniteGrid() {
 
 interface Object3DData {
   id: number
-  type: "cube" | "pyramid"
+  type: "cube" | "pyramid" | "sphere" | "cylinder" | "torus" | "plane"
   position: [number, number, number]
   color: string
   selected: boolean
+  isDragging?: boolean
 }
 
 function Cube({ position, color, selected, onClick }: any) {
@@ -64,6 +65,100 @@ function Pyramid({ position, color, selected, onClick }: any) {
         <mesh>
           <coneGeometry args={[0.9, 1.7, 4]} />
           <meshBasicMaterial wireframe color="#ffffff" />
+        </mesh>
+      )}
+    </mesh>
+  )
+}
+
+function Sphere({ position, color, selected, onClick }: any) {
+  const meshRef = useRef<Mesh>(null)
+
+  useFrame((state, delta) => {
+    if (meshRef.current && selected) {
+      meshRef.current.rotation.y += delta * 0.8
+      meshRef.current.rotation.x += delta * 0.2
+    }
+  })
+
+  return (
+    <mesh ref={meshRef} position={position} onClick={onClick}>
+      <sphereGeometry args={[0.8, 32, 32]} />
+      <meshPhongMaterial color={selected ? "#10b981" : color} />
+      {selected && (
+        <mesh>
+          <sphereGeometry args={[0.9, 16, 16]} />
+          <meshBasicMaterial wireframe color="#ffffff" />
+        </mesh>
+      )}
+    </mesh>
+  )
+}
+
+function Cylinder({ position, color, selected, onClick }: any) {
+  const meshRef = useRef<Mesh>(null)
+
+  useFrame((state, delta) => {
+    if (meshRef.current && selected) {
+      meshRef.current.rotation.y += delta * 1.2
+    }
+  })
+
+  return (
+    <mesh ref={meshRef} position={position} onClick={onClick}>
+      <cylinderGeometry args={[0.6, 0.6, 1.5, 32]} />
+      <meshPhongMaterial color={selected ? "#f59e0b" : color} />
+      {selected && (
+        <mesh>
+          <cylinderGeometry args={[0.7, 0.7, 1.6, 16]} />
+          <meshBasicMaterial wireframe color="#ffffff" />
+        </mesh>
+      )}
+    </mesh>
+  )
+}
+
+function Torus({ position, color, selected, onClick }: any) {
+  const meshRef = useRef<Mesh>(null)
+
+  useFrame((state, delta) => {
+    if (meshRef.current && selected) {
+      meshRef.current.rotation.x += delta * 0.7
+      meshRef.current.rotation.y += delta * 0.5
+    }
+  })
+
+  return (
+    <mesh ref={meshRef} position={position} onClick={onClick}>
+      <torusGeometry args={[0.8, 0.3, 16, 100]} />
+      <meshPhongMaterial color={selected ? "#8b5cf6" : color} />
+      {selected && (
+        <mesh>
+          <torusGeometry args={[0.9, 0.35, 8, 50]} />
+          <meshBasicMaterial wireframe color="#ffffff" />
+        </mesh>
+      )}
+    </mesh>
+  )
+}
+
+function Plane({ position, color, selected, onClick }: any) {
+  const meshRef = useRef<Mesh>(null)
+
+  useFrame((state, delta) => {
+    if (meshRef.current && selected) {
+      meshRef.current.rotation.z += delta * 0.6
+    }
+  })
+
+  return (
+    <mesh ref={meshRef} position={position} onClick={onClick}>
+      <planeGeometry args={[1.5, 1.5]} />
+      <meshPhongMaterial color={selected ? "#ec4899" : color} side={2} />
+      {selected && (
+        <mesh>
+          <planeGeometry args={[1.6, 1.6]} />
+          <meshBasicMaterial wireframe color="#ffffff" side={2} />
         </mesh>
       )}
     </mesh>
