@@ -23,14 +23,14 @@ export default function GraphicsApp() {
   const [lineThickness, setLineThickness] = useState(2)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-black dark:to-slate-950">
       {/* Header */}
-      <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 shadow-sm">
+      <header className="bg-white dark:bg-black border-b border-slate-200 dark:border-slate-800 shadow-sm">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Graphics Studio 3D</h1>
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs dark:border-slate-700 dark:text-slate-300">
                 Professional 3D Graphics Lab
               </Badge>
             </div>
@@ -51,7 +51,7 @@ export default function GraphicsApp() {
 
       <div className="flex h-[calc(100vh-80px)]">
         {/* Left Sidebar */}
-        <div className="w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-700 overflow-y-auto">
+        <div className="w-80 bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 overflow-y-auto">
           <div className="p-4">
             <Tabs value={activeModule} onValueChange={setActiveModule} className="w-full">
               <TabsList className="grid w-full grid-cols-2">
@@ -148,10 +148,10 @@ export default function GraphicsApp() {
 
         {/* Main Canvas Area */}
         <div className="flex-1 flex flex-col">
-          <div className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 px-4 py-2">
+          <div className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 px-4 py-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Mode: {activeModule.toUpperCase()}</span>
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Mode: {activeModule.toUpperCase()}</span>
                 {activeModule === "2d" && (
                   <span className="text-sm text-slate-500 dark:text-slate-400">
                     Tool: {selectedTool.charAt(0).toUpperCase() + selectedTool.slice(1)}
@@ -169,8 +169,8 @@ export default function GraphicsApp() {
             </div>
           </div>
 
-          <div className="flex-1 bg-slate-50 dark:bg-slate-800 p-4">
-            <div className="h-full bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+          <div className="flex-1 bg-slate-50 dark:bg-slate-900 p-4">
+            <div className="h-full bg-white dark:bg-black rounded-lg border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
               {activeModule === "2d" ? (
                 <Canvas2D selectedTool={selectedTool} selectedColor={selectedColor} lineThickness={lineThickness} />
               ) : (
@@ -181,7 +181,7 @@ export default function GraphicsApp() {
         </div>
 
         {/* Right Sidebar - Properties */}
-        <div className="w-64 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 overflow-y-auto">
+        <div className="w-64 bg-white dark:bg-slate-950 border-l border-slate-200 dark:border-slate-800 overflow-y-auto">
           <div className="p-4">
             <Card>
               <CardHeader className="pb-3">

@@ -133,9 +133,9 @@ export default function Canvas2D({ selectedTool, selectedColor, lineThickness }:
     // Clear with theme-appropriate background
     const isDark = theme === 'dark'
     if (isDark) {
-      gl.clearColor(0.05, 0.05, 0.1, 1.0) // Dark background
+      gl.clearColor(0.0, 0.0, 0.0, 1.0) // Pure black background for dark mode
     } else {
-      gl.clearColor(1.0, 1.0, 1.0, 1.0) // Light background
+      gl.clearColor(1.0, 1.0, 1.0, 1.0) // White background for light mode
     }
     gl.clear(gl.COLOR_BUFFER_BIT)
     
@@ -338,9 +338,9 @@ export default function Canvas2D({ selectedTool, selectedColor, lineThickness }:
         // Set background color based on theme
         const isDark = theme === 'dark'
         if (isDark) {
-          gl.clearColor(0.05, 0.05, 0.1, 1.0) // Dark background
+          gl.clearColor(0.0, 0.0, 0.0, 1.0) // Pure black background for dark mode
         } else {
-          gl.clearColor(1.0, 1.0, 1.0, 1.0) // Light background
+          gl.clearColor(1.0, 1.0, 1.0, 1.0) // White background for light mode
         }
         gl.clear(gl.COLOR_BUFFER_BIT)
       }
@@ -350,19 +350,19 @@ export default function Canvas2D({ selectedTool, selectedColor, lineThickness }:
   useWebGLSetup(gl, program)
 
   return (
-    <div className="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-slate-800">
+    <div className="w-full h-full flex items-center justify-center bg-gray-50 dark:bg-black">
       <canvas
         ref={canvasRef}
         width={800}
         height={600}
-        className="border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 cursor-crosshair"
+        className="border border-gray-300 dark:border-slate-700 bg-white dark:bg-black cursor-crosshair"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onContextMenu={(e) => e.preventDefault()}
       />
       {isDrawing && (
-        <div className="absolute top-4 left-4 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-md text-sm">
+        <div className="absolute top-4 left-4 bg-blue-100 dark:bg-slate-900 text-blue-800 dark:text-blue-300 px-3 py-1 rounded-md text-sm border dark:border-slate-700">
           {selectedTool === "line" && "Drag to draw line"}
           {selectedTool === "rectangle" && "Drag to draw rectangle"}
           {selectedTool === "ellipse" && "Drag to draw ellipse"}

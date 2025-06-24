@@ -151,8 +151,8 @@ function Scene() {
   return (
     <>
       {/* Info Panel */}
-      <div className="absolute top-4 right-4 z-10 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg">
-        <div className="text-sm text-gray-700">
+      <div className="absolute top-4 right-4 z-10 bg-white/90 dark:bg-slate-950/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border dark:border-slate-800">
+        <div className="text-sm text-gray-700 dark:text-slate-300">
           <div>Objects: {objects.length}</div>
           <div>Selected: {objects.filter((o) => o.selected).length}</div>
         </div>
