@@ -203,92 +203,120 @@ export default function Canvas2D({ selectedTool, selectedColor, lineThickness }:
     drawObjects()
   }, [drawObjects])
 
-  const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+  const getMousePos = (event: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    if (!canvas) return { x: 0, y: 0 }
 
     const rect = canvas.getBoundingClientRect()
-    const x = event.clientX - rect.left
-    const y = event.clientY - rect.top
+    return {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top
+    }
+  }
 
-    const point: Point = { x, y }
+  const handleMouseDown = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    const point = getMousePos(event)
+
+    if (selectedTool === "point") {
+      // Point tool works with single click
+      setObjects((prev) => [
+        ...prev,
+        {
+          type: "point",
+          points: [point],
+          color: selectedColor,
+          thickness: lineThickness,
+        },
+      ])
+      return
+    }
+
+    // For other tools, start drawing
+    setIsDrawing(true)
+    setStartPoint(point)
+  }
+
+  const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || !startPoint) return
+
+    const currentPoint = getMousePos(event)
+
+    // Create preview object
+    let previewObj: DrawnObject | null = null
 
     switch (selectedTool) {
-      case "point":
-        setObjects((prev) => [
-          ...prev,
-          {
-            type: "point",
-            points: [point],
-            color: selectedColor,
-            thickness: lineThickness,
-          },
-        ])
-        break
-
       case "line":
-        if (!isDrawing) {
-          setStartPoint(point)
-          setIsDrawing(true)
-        } else {
-          if (startPoint) {
-            setObjects((prev) => [
-              ...prev,
-              {
-                type: "line",
-                points: [startPoint, point],
-                color: selectedColor,
-                thickness: lineThickness,
-              },
-            ])
-          }
-          setIsDrawing(false)
-          setStartPoint(null)
+        previewObj = {
+          type: "line",
+          points: [startPoint, currentPoint],
+          color: selectedColor,
+          thickness: lineThickness,
         }
         break
-
       case "rectangle":
-        if (!isDrawing) {
-          setStartPoint(point)
-          setIsDrawing(true)
-        } else {
-          if (startPoint) {
-            setObjects((prev) => [
-              ...prev,
-              {
-                type: "rectangle",
-                points: [startPoint, point],
-                color: selectedColor,
-                thickness: lineThickness,
-              },
-            ])
-          }
-          setIsDrawing(false)
-          setStartPoint(null)
+        previewObj = {
+          type: "rectangle",
+          points: [startPoint, currentPoint],
+          color: selectedColor,
+          thickness: lineThickness,
         }
         break
-
       case "ellipse":
-        if (!isDrawing) {
-          setStartPoint(point)
-          setIsDrawing(true)
-        } else {
-          if (startPoint) {
-            setObjects((prev) => [
-              ...prev,
-              {
-                type: "ellipse",
-                points: [startPoint, point],
-                color: selectedColor,
-                thickness: lineThickness,
-              },
-            ])
-          }
-          setIsDrawing(false)
-          setStartPoint(null)
+        previewObj = {
+          type: "ellipse",
+          points: [startPoint, currentPoint],
+          color: selectedColor,
+          thickness: lineThickness,
         }
         break
     }
+
+    setCurrentPreview(previewObj)
+  }
+
+  const handleMouseUp = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || !startPoint) return
+
+    const endPoint = getMousePos(event)
+
+    // Add the completed object
+    let newObject: DrawnObject | null = null
+
+    switch (selectedTool) {
+      case "line":
+        newObject = {
+          type: "line",
+          points: [startPoint, endPoint],
+          color: selectedColor,
+          thickness: lineThickness,
+        }
+        break
+      case "rectangle":
+        newObject = {
+          type: "rectangle",
+          points: [startPoint, endPoint],
+          color: selectedColor,
+          thickness: lineThickness,
+        }
+        break
+      case "ellipse":
+        newObject = {
+          type: "ellipse",
+          points: [startPoint, endPoint],
+          color: selectedColor,
+          thickness: lineThickness,
+        }
+        break
+    }
+
+    if (newObject) {
+      setObjects((prev) => [...prev, newObject])
+    }
+
+    // Reset drawing state
+    setIsDrawing(false)
+    setStartPoint(null)
+    setCurrentPreview(null)
   }
 
   // Ensure hooks are called at the top level
@@ -312,13 +340,15 @@ export default function Canvas2D({ selectedTool, selectedColor, lineThickness }:
         width={800}
         height={600}
         className="border border-gray-300 bg-white cursor-crosshair"
-        onClick={handleCanvasClick}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
       />
       {isDrawing && (
         <div className="absolute top-4 left-4 bg-blue-100 text-blue-800 px-3 py-1 rounded-md text-sm">
-          {selectedTool === "line" && "Click to set end point"}
-          {selectedTool === "rectangle" && "Click to set opposite corner"}
-          {selectedTool === "ellipse" && "Click to set ellipse bounds"}
+          {selectedTool === "line" && "Drag to draw line"}
+          {selectedTool === "rectangle" && "Drag to draw rectangle"}
+          {selectedTool === "ellipse" && "Drag to draw ellipse"}
         </div>
       )}
     </div>
