@@ -211,7 +211,7 @@ interface Object3DData {
   scale?: { x: number; y: number; z: number }
 }
 
-function Cube({ position, color, selected, onClick, rotation, scale, shininess }: any) {
+function Cube({ position, color, selected, onClick, rotation, scale, shininess, diffuseIntensity, specularIntensity }: any) {
   const meshRef = useRef<Mesh>(null)
 
   useFrame((state, delta) => {
@@ -237,11 +237,14 @@ function Cube({ position, color, selected, onClick, rotation, scale, shininess }
   }, [rotation, scale])
 
   return (
-    <mesh ref={meshRef} position={position} onClick={onClick}>
+    <mesh ref={meshRef} position={position} onClick={onClick} castShadow receiveShadow>
       <boxGeometry args={[1, 1, 1]} />
       <meshPhongMaterial 
         color={selected ? "#ff6b6b" : color} 
         shininess={shininess || 32}
+        specular={new THREE.Color(0xffffff).multiplyScalar(specularIntensity || 0.5)}
+        transparent={false}
+        opacity={1.0}
       />
       {selected && (
         <mesh>
@@ -253,7 +256,7 @@ function Cube({ position, color, selected, onClick, rotation, scale, shininess }
   )
 }
 
-function Pyramid({ position, color, selected, onClick, rotation, scale, shininess }: any) {
+function Pyramid({ position, color, selected, onClick, rotation, scale, shininess, diffuseIntensity, specularIntensity }: any) {
   const meshRef = useRef<Mesh>(null)
 
   useFrame((state, delta) => {
@@ -279,11 +282,14 @@ function Pyramid({ position, color, selected, onClick, rotation, scale, shinines
   }, [rotation, scale])
 
   return (
-    <mesh ref={meshRef} position={position} onClick={onClick}>
+    <mesh ref={meshRef} position={position} onClick={onClick} castShadow receiveShadow>
       <coneGeometry args={[0.8, 1.6, 4]} />
       <meshPhongMaterial 
         color={selected ? "#4ecdc4" : color} 
         shininess={shininess || 32}
+        specular={new THREE.Color(0xffffff).multiplyScalar(specularIntensity || 0.5)}
+        transparent={false}
+        opacity={1.0}
       />
       {selected && (
         <mesh>
@@ -295,7 +301,7 @@ function Pyramid({ position, color, selected, onClick, rotation, scale, shinines
   )
 }
 
-function Sphere({ position, color, selected, onClick, rotation, scale, shininess }: any) {
+function Sphere({ position, color, selected, onClick, rotation, scale, shininess, diffuseIntensity, specularIntensity }: any) {
   const meshRef = useRef<Mesh>(null)
 
   useFrame((state, delta) => {
@@ -321,11 +327,14 @@ function Sphere({ position, color, selected, onClick, rotation, scale, shininess
   }, [rotation, scale])
 
   return (
-    <mesh ref={meshRef} position={position} onClick={onClick}>
+    <mesh ref={meshRef} position={position} onClick={onClick} castShadow receiveShadow>
       <sphereGeometry args={[0.8, 32, 32]} />
       <meshPhongMaterial 
         color={selected ? "#10b981" : color} 
         shininess={shininess || 32}
+        specular={new THREE.Color(0xffffff).multiplyScalar(specularIntensity || 0.5)}
+        transparent={false}
+        opacity={1.0}
       />
       {selected && (
         <mesh>
@@ -337,7 +346,7 @@ function Sphere({ position, color, selected, onClick, rotation, scale, shininess
   )
 }
 
-function Cylinder({ position, color, selected, onClick, rotation, scale, shininess }: any) {
+function Cylinder({ position, color, selected, onClick, rotation, scale, shininess, diffuseIntensity, specularIntensity }: any) {
   const meshRef = useRef<Mesh>(null)
 
   useFrame((state, delta) => {
@@ -362,11 +371,14 @@ function Cylinder({ position, color, selected, onClick, rotation, scale, shinine
   }, [rotation, scale])
 
   return (
-    <mesh ref={meshRef} position={position} onClick={onClick}>
+    <mesh ref={meshRef} position={position} onClick={onClick} castShadow receiveShadow>
       <cylinderGeometry args={[0.6, 0.6, 1.5, 32]} />
       <meshPhongMaterial 
         color={selected ? "#f59e0b" : color} 
         shininess={shininess || 32}
+        specular={new THREE.Color(0xffffff).multiplyScalar(specularIntensity || 0.5)}
+        transparent={false}
+        opacity={1.0}
       />
       {selected && (
         <mesh>
@@ -378,7 +390,7 @@ function Cylinder({ position, color, selected, onClick, rotation, scale, shinine
   )
 }
 
-function Torus({ position, color, selected, onClick, rotation, scale, shininess }: any) {
+function Torus({ position, color, selected, onClick, rotation, scale, shininess, diffuseIntensity, specularIntensity }: any) {
   const meshRef = useRef<Mesh>(null)
 
   useFrame((state, delta) => {
@@ -404,11 +416,14 @@ function Torus({ position, color, selected, onClick, rotation, scale, shininess 
   }, [rotation, scale])
 
   return (
-    <mesh ref={meshRef} position={position} onClick={onClick}>
+    <mesh ref={meshRef} position={position} onClick={onClick} castShadow receiveShadow>
       <torusGeometry args={[0.8, 0.3, 16, 100]} />
       <meshPhongMaterial 
         color={selected ? "#8b5cf6" : color} 
         shininess={shininess || 32}
+        specular={new THREE.Color(0xffffff).multiplyScalar(specularIntensity || 0.5)}
+        transparent={false}
+        opacity={1.0}
       />
       {selected && (
         <mesh>
@@ -420,7 +435,7 @@ function Torus({ position, color, selected, onClick, rotation, scale, shininess 
   )
 }
 
-function Plane({ position, color, selected, onClick, rotation, scale, shininess }: any) {
+function Plane({ position, color, selected, onClick, rotation, scale, shininess, diffuseIntensity, specularIntensity }: any) {
   const meshRef = useRef<Mesh>(null)
 
   useFrame((state, delta) => {
@@ -445,12 +460,15 @@ function Plane({ position, color, selected, onClick, rotation, scale, shininess 
   }, [rotation, scale])
 
   return (
-    <mesh ref={meshRef} position={position} onClick={onClick}>
+    <mesh ref={meshRef} position={position} onClick={onClick} castShadow receiveShadow>
       <planeGeometry args={[1.5, 1.5]} />
       <meshPhongMaterial 
         color={selected ? "#ec4899" : color} 
         side={2} 
         shininess={shininess || 32}
+        specular={new THREE.Color(0xffffff).multiplyScalar(specularIntensity || 0.5)}
+        transparent={false}
+        opacity={1.0}
       />
       {selected && (
         <mesh>
@@ -512,8 +530,7 @@ function Scene() {
   const [selectedObjectId, setSelectedObjectId] = useState<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isVerticalDragging, setIsVerticalDragging] = useState(false)
-  
-  // Lighting state
+  // Lighting state - managed locally to avoid infinite loops
   const [lightingSettings, setLightingSettings] = useState({
     shadingModel: 'phong' as 'phong' | 'gouraud',
     ambientIntensity: 0.3,
@@ -521,8 +538,15 @@ function Scene() {
     directionalPosition: { x: 10, y: 10, z: 5 },
     pointIntensity: 0.5,
     pointPosition: { x: -10, y: -10, z: -5 },
+    diffuseIntensity: 0.8,
+    specularIntensity: 0.5,
     shininess: 32
   })
+
+  // Update lighting settings when global state changes
+  const updateLighting = (newSettings: typeof lightingSettings) => {
+    setLightingSettings(newSettings)
+  }
 
   const handleObjectClick = (id: number) => {
     setObjects((prev) =>
@@ -702,11 +726,6 @@ function Scene() {
     }))
   }
 
-  // Update lighting settings from panel
-  const updateLighting = (newSettings: typeof lightingSettings) => {
-    setLightingSettings(newSettings)
-  }
-
   // Make functions available globally for the tool panel
   if (typeof window !== 'undefined') {
     ;(window as any).canvas3DActions = {
@@ -750,7 +769,10 @@ function Scene() {
 
       {/* 3D Scene */}
       <Canvas camera={{ position: [5, 5, 5], fov: 75 }}>
+        {/* Ambient Light */}
         <ambientLight intensity={lightingSettings.ambientIntensity} />
+        
+        {/* Directional Light */}
         <directionalLight 
           position={[
             lightingSettings.directionalPosition.x, 
@@ -759,6 +781,8 @@ function Scene() {
           ]} 
           intensity={lightingSettings.directionalIntensity} 
         />
+        
+        {/* Point Light */}
         <pointLight 
           position={[
             lightingSettings.pointPosition.x, 
@@ -766,6 +790,31 @@ function Scene() {
             lightingSettings.pointPosition.z
           ]} 
           intensity={lightingSettings.pointIntensity} 
+        />
+        
+        {/* Diffuse Light (Hemisphere Light for soft diffuse lighting) */}
+        <hemisphereLight 
+          args={["#ffffff", "#444444", lightingSettings.diffuseIntensity]}
+        />
+        
+        {/* Specular Light (Spot Light for focused specular highlights) */}
+        <spotLight
+          position={[5, 8, 5]}
+          angle={Math.PI / 4}
+          penumbra={0.2}
+          intensity={lightingSettings.specularIntensity * 1.5}
+          castShadow
+          shadow-mapSize-width={1024}
+          shadow-mapSize-height={1024}
+          shadow-camera-near={0.1}
+          shadow-camera-far={50}
+        />
+        
+        {/* Additional directional light for enhanced specular reflections */}
+        <directionalLight 
+          position={[-5, 5, -5]}
+          intensity={lightingSettings.specularIntensity * 0.3}
+          color="#ffffff"
         />
 
         {objects.map((obj) => {
@@ -776,7 +825,9 @@ function Scene() {
             onClick: () => handleObjectClick(obj.id),
             rotation: obj.rotation,
             scale: obj.scale,
-            shininess: lightingSettings.shininess
+            shininess: lightingSettings.shininess,
+            diffuseIntensity: lightingSettings.diffuseIntensity,
+            specularIntensity: lightingSettings.specularIntensity
           }
 
           let ObjectComponent

@@ -14,6 +14,8 @@ interface LightingSettings {
   directionalPosition: { x: number; y: number; z: number }
   pointIntensity: number
   pointPosition: { x: number; y: number; z: number }
+  diffuseIntensity: number
+  specularIntensity: number
   shininess: number
 }
 
@@ -25,13 +27,14 @@ export default function LightingPanel() {
     directionalPosition: { x: 10, y: 10, z: 5 },
     pointIntensity: 0.5,
     pointPosition: { x: -10, y: -10, z: -5 },
+    diffuseIntensity: 0.8,
+    specularIntensity: 0.5,
     shininess: 32
   })
 
   // Update global lighting settings when state changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      (window as any).lightingSettings = settings
       // Trigger update in canvas if available
       if ((window as any).updateLighting) {
         (window as any).updateLighting(settings)
@@ -231,6 +234,88 @@ export default function LightingPanel() {
 
       <Separator />
 
+      {/* Diffuse Light */}
+      <div>
+        <Label className="text-sm font-medium mb-2 flex items-center">
+          <Sun className="w-4 h-4 mr-1" />
+          Diffuse Light
+        </Label>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs text-slate-600 dark:text-slate-400">Intensity</Label>
+            <span className="text-xs text-slate-500 dark:text-slate-400">{settings.diffuseIntensity.toFixed(2)}</span>
+          </div>
+          <Slider 
+            value={[settings.diffuseIntensity * 100]} 
+            max={100} 
+            step={1} 
+            className="w-full"
+            onValueChange={(value) => updateSetting('diffuseIntensity', value[0] / 100)}
+          />
+          <div className="text-xs text-slate-500 dark:text-slate-400 p-2 bg-slate-50 dark:bg-slate-900 rounded">
+            💡 <strong>Diffuse Light:</strong> Creates soft, even lighting that scatters uniformly from all surface angles. Higher values make objects appear more evenly lit with less contrast.
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Specular Light */}
+      <div>
+        <Label className="text-sm font-medium mb-2 flex items-center">
+          <Zap className="w-4 h-4 mr-1" />
+          Specular Light
+        </Label>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs text-slate-600 dark:text-slate-400">Intensity</Label>
+            <span className="text-xs text-slate-500 dark:text-slate-400">{settings.specularIntensity.toFixed(2)}</span>
+          </div>
+          <Slider 
+            value={[settings.specularIntensity * 100]} 
+            max={100} 
+            step={1} 
+            className="w-full"
+            onValueChange={(value) => updateSetting('specularIntensity', value[0] / 100)}
+          />
+          <div className="text-xs text-slate-500 dark:text-slate-400 p-2 bg-slate-50 dark:bg-slate-900 rounded">
+            ✨ <strong>Specular Light:</strong> Creates bright, shiny reflective highlights that appear at specific viewing angles. Higher values make materials appear more metallic and reflective.
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Visual Demonstration */}
+      <div>
+        <Label className="text-sm font-medium mb-2 block">Lighting Effects Preview</Label>
+        <div className="space-y-2">
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="p-2 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 rounded">
+              <div className="font-medium text-slate-700 dark:text-slate-300">Diffuse Lighting</div>
+              <div className="text-slate-500 dark:text-slate-400 mt-1">
+                • Soft, even illumination
+                <br />• Lambertian reflection
+                <br />• Matte surface appearance
+              </div>
+            </div>
+            <div className="p-2 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20 rounded">
+              <div className="font-medium text-yellow-700 dark:text-yellow-300">Specular Lighting</div>
+              <div className="text-yellow-600 dark:text-yellow-400 mt-1">
+                • Sharp, bright highlights
+                <br />• Mirror-like reflection  
+                <br />• Shiny surface appearance
+              </div>
+            </div>
+          </div>
+          <div className="text-xs text-slate-500 dark:text-slate-400 p-2 bg-blue-50 dark:bg-blue-900/20 rounded">
+            🎨 <strong>Tip:</strong> Combine diffuse and specular lighting to create realistic materials. Low diffuse + high specular = metallic. High diffuse + low specular = matte.
+          </div>
+        </div>
+      </div>
+
+      <Separator />
+
       {/* Material Properties */}
       <div>
         <Label className="text-sm font-medium mb-2 block">Material Properties</Label>
@@ -241,11 +326,15 @@ export default function LightingPanel() {
           </div>
           <Slider 
             value={[settings.shininess]} 
+            min={1}
             max={128} 
             step={1} 
             className="w-full"
             onValueChange={(value) => updateSetting('shininess', value[0])}
           />
+          <div className="text-xs text-slate-500 dark:text-slate-400">
+            Higher values create smaller, more intense specular highlights
+          </div>
         </div>
       </div>
     </div>
