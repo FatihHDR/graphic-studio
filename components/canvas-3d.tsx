@@ -1,10 +1,12 @@
 "use client"
 
-import React, { useRef, useState, useEffect, createContext, useContext } from "react"
-import { Canvas, useFrame, useThree } from "@react-three/fiber"
+import React, { useRef, useState, useEffect, createContext, useContext, Suspense } from "react"
+import { Canvas, useFrame, useThree, useLoader } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
 import type { Mesh } from "three"
 import * as THREE from "three"
+import { OBJLoader } from "three-stdlib"
+import { toast } from "sonner"
 
 // Context to manage global drag state
 const DragContext = createContext<{
@@ -22,9 +24,24 @@ const DragContext = createContext<{
 // Custom OrbitControls that can be disabled during dragging
 function CustomOrbitControls() {
   const { isDragging, isVerticalDragging } = useContext(DragContext)
+  const controlsRef = useRef<any>(null)
+  
+  // Expose reset function to global scope
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      (window as any).resetCameraControls = () => {
+        if (controlsRef.current) {
+          // Reset to default position and target
+          controlsRef.current.reset()
+          toast.success('Camera position reset!')
+        }
+      }
+    }
+  }, [])
   
   return (
     <OrbitControls
+      ref={controlsRef}
       enabled={!isDragging && !isVerticalDragging}
       enablePan={true}
       enableZoom={true}
@@ -202,13 +219,15 @@ function DraggableObject({ children, position, onDrag, id }: any) {
 
 interface Object3DData {
   id: number
-  type: "cube" | "pyramid" | "sphere" | "cylinder" | "torus" | "plane"
+  type: "cube" | "pyramid" | "sphere" | "cylinder" | "torus" | "plane" | "obj"
   position: [number, number, number]
   color: string
   selected: boolean
   isDragging?: boolean
   rotation?: { x: number; y: number; z: number }
   scale?: { x: number; y: number; z: number }
+  url?: string // For OBJ files
+  fileName?: string // For display purposes
 }
 
 function Cube({ position, color, selected, onClick, rotation, scale, shininess, diffuseIntensity, specularIntensity }: any) {
@@ -480,6 +499,152 @@ function Plane({ position, color, selected, onClick, rotation, scale, shininess,
   )
 }
 
+// OBJ Model Component with error handling
+function OBJModel({ url, position, color, selected, onClick, rotation, scale, shininess, diffuseIntensity, specularIntensity }: any) {
+  const meshRef = useRef<THREE.Group>(null)
+  const [loadError, setLoadError] = useState(false)
+  
+  // Always call hooks at the top level
+  useFrame((state, delta) => {
+    if (meshRef.current && selected && !loadError) {
+      meshRef.current.rotation.y += delta * 0.5
+    }
+  })
+
+  useEffect(() => {
+    if (meshRef.current && !loadError) {
+      if (rotation) {
+        meshRef.current.rotation.set(
+          (rotation.x * Math.PI) / 180,
+          (rotation.y * Math.PI) / 180,
+          (rotation.z * Math.PI) / 180
+        )
+      }
+      if (scale) {
+        meshRef.current.scale.set(scale.x, scale.y, scale.z)
+      }
+      
+      // Apply material to all meshes in the loaded object
+      meshRef.current.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.material = new THREE.MeshPhongMaterial({
+            color: selected ? "#ff6b6b" : color,
+            shininess: shininess || 32,
+            specular: new THREE.Color(0xffffff).multiplyScalar(specularIntensity || 0.5),
+            transparent: false,
+            opacity: 1.0
+          })
+          child.castShadow = true
+          child.receiveShadow = true
+        }
+      })
+    }
+  }, [rotation, scale, color, selected, shininess, specularIntensity, loadError])
+
+  // Check if URL is provided
+  if (!url) {
+    console.warn('OBJ Model: No URL provided')
+    return (
+      <Cube 
+        position={position}
+        color={color}
+        selected={selected}
+        onClick={onClick}
+        rotation={rotation}
+        scale={scale}
+        shininess={shininess}
+        diffuseIntensity={diffuseIntensity}
+        specularIntensity={specularIntensity}
+      />
+    )
+  }
+
+  // If there was a load error, show fallback
+  if (loadError) {
+    return (
+      <Cube 
+        position={position}
+        color={color}
+        selected={selected}
+        onClick={onClick}
+        rotation={rotation}
+        scale={scale}
+        shininess={shininess}
+        diffuseIntensity={diffuseIntensity}
+        specularIntensity={specularIntensity}
+      />
+    )
+  }
+
+  return (
+    <Suspense fallback={
+      <Cube 
+        position={position}
+        color={color}
+        selected={selected}
+        onClick={onClick}
+        rotation={rotation}
+        scale={scale}
+        shininess={shininess}
+        diffuseIntensity={diffuseIntensity}
+        specularIntensity={specularIntensity}
+      />
+    }>
+      <OBJModelContent
+        url={url}
+        meshRef={meshRef}
+        position={position}
+        color={color}
+        selected={selected}
+        onClick={onClick}
+        setLoadError={setLoadError}
+      />
+    </Suspense>
+  )
+}
+
+// Separate component for the actual OBJ loading
+function OBJModelContent({ url, meshRef, position, selected, onClick, setLoadError }: any) {
+  const [obj, setObj] = useState<THREE.Group | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const loader = new OBJLoader()
+    
+    loader.load(
+      url,
+      (loadedObj) => {
+        setObj(loadedObj)
+        setLoading(false)
+      },
+      (progress) => {
+        // Loading progress
+      },
+      (error) => {
+        console.error('Error loading OBJ model:', error)
+        setLoadError(true)
+        setLoading(false)
+      }
+    )
+  }, [url, setLoadError])
+
+  if (loading || !obj) {
+    return null
+  }
+
+  return (
+    <group ref={meshRef} position={position} onClick={onClick}>
+      <primitive object={obj} />
+      {selected && (
+        <mesh>
+          <boxGeometry args={[2, 2, 2]} />
+          <meshBasicMaterial wireframe color="#ffffff" />
+        </mesh>
+      )}
+    </group>
+  )
+}
+
 function Scene() {
   const [objects, setObjects] = useState<Object3DData[]>([
     {
@@ -726,6 +891,55 @@ function Scene() {
     }))
   }
 
+  const resetCamera = () => {
+    if (typeof window !== 'undefined' && (window as any).resetCameraControls) {
+      (window as any).resetCameraControls()
+    } else {
+      toast.error('Camera controls not available')
+    }
+  }
+
+  const loadObjFile = (file: File) => {
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      if (!event.target?.result) {
+        toast.error('Failed to read file')
+        return
+      }
+      
+      try {
+        // Create a blob URL for the file content
+        const blob = new Blob([event.target.result], { type: 'text/plain' })
+        const url = URL.createObjectURL(blob)
+        
+        const newId = Math.max(...objects.map((o) => o.id), 0) + 1
+        setObjects((prev) => [
+          ...prev,
+          {
+            id: newId,
+            type: "obj",
+            position: [0, 0, 0],
+            color: `hsl(${Math.random() * 360}, 70%, 50%)`,
+            selected: true, // Auto-select new object
+            url: url,
+            fileName: file.name
+          },
+        ])
+        
+        toast.success(`${file.name} loaded successfully!`)
+      } catch (error) {
+        console.error('Error loading OBJ file:', error)
+        toast.error('Failed to load OBJ file')
+      }
+    }
+    
+    reader.onerror = () => {
+      toast.error('Failed to read file')
+    }
+    
+    reader.readAsText(file)
+  }
+
   // Make functions available globally for the tool panel
   if (typeof window !== 'undefined') {
     ;(window as any).canvas3DActions = {
@@ -741,6 +955,8 @@ function Scene() {
       applyTransform,
       resetTransform,
       centerObject,
+      resetCamera,
+      loadObjFile,
     }
     
     // Make lighting update function available globally
@@ -769,120 +985,130 @@ function Scene() {
 
       {/* 3D Scene */}
       <Canvas camera={{ position: [5, 5, 5], fov: 75 }}>
-        {/* Ambient Light */}
-        <ambientLight intensity={lightingSettings.ambientIntensity} />
-        
-        {/* Directional Light */}
-        <directionalLight 
-          position={[
-            lightingSettings.directionalPosition.x, 
-            lightingSettings.directionalPosition.y, 
-            lightingSettings.directionalPosition.z
-          ]} 
-          intensity={lightingSettings.directionalIntensity} 
-        />
-        
-        {/* Point Light */}
-        <pointLight 
-          position={[
-            lightingSettings.pointPosition.x, 
-            lightingSettings.pointPosition.y, 
-            lightingSettings.pointPosition.z
-          ]} 
-          intensity={lightingSettings.pointIntensity} 
-        />
-        
-        {/* Diffuse Light (Hemisphere Light for soft diffuse lighting) */}
-        <hemisphereLight 
-          args={["#ffffff", "#444444", lightingSettings.diffuseIntensity]}
-        />
-        
-        {/* Specular Light (Spot Light for focused specular highlights) */}
-        <spotLight
-          position={[5, 8, 5]}
-          angle={Math.PI / 4}
-          penumbra={0.2}
-          intensity={lightingSettings.specularIntensity * 1.5}
-          castShadow
-          shadow-mapSize-width={1024}
-          shadow-mapSize-height={1024}
-          shadow-camera-near={0.1}
-          shadow-camera-far={50}
-        />
-        
-        {/* Additional directional light for enhanced specular reflections */}
-        <directionalLight 
-          position={[-5, 5, -5]}
-          intensity={lightingSettings.specularIntensity * 0.3}
-          color="#ffffff"
-        />
+        <Suspense fallback={null}>
+          {/* Ambient Light */}
+          <ambientLight intensity={lightingSettings.ambientIntensity} />
+          
+          {/* Directional Light */}
+          <directionalLight 
+            position={[
+              lightingSettings.directionalPosition.x, 
+              lightingSettings.directionalPosition.y, 
+              lightingSettings.directionalPosition.z
+            ]} 
+            intensity={lightingSettings.directionalIntensity} 
+          />
+          
+          {/* Point Light */}
+          <pointLight 
+            position={[
+              lightingSettings.pointPosition.x, 
+              lightingSettings.pointPosition.y, 
+              lightingSettings.pointPosition.z
+            ]} 
+            intensity={lightingSettings.pointIntensity} 
+          />
+          
+          {/* Diffuse Light (Hemisphere Light for soft diffuse lighting) */}
+          <hemisphereLight 
+            args={["#ffffff", "#444444", lightingSettings.diffuseIntensity]}
+          />
+          
+          {/* Specular Light (Spot Light for focused specular highlights) */}
+          <spotLight
+            position={[5, 8, 5]}
+            angle={Math.PI / 4}
+            penumbra={0.2}
+            intensity={lightingSettings.specularIntensity * 1.5}
+            castShadow
+            shadow-mapSize-width={1024}
+            shadow-mapSize-height={1024}
+            shadow-camera-near={0.1}
+            shadow-camera-far={50}
+          />
+          
+          {/* Additional directional light for enhanced specular reflections */}
+          <directionalLight 
+            position={[-5, 5, -5]}
+            intensity={lightingSettings.specularIntensity * 0.3}
+            color="#ffffff"
+          />
 
-        {objects.map((obj) => {
-          const commonProps = {
-            position: obj.position,
-            color: obj.color,
-            selected: obj.selected,
-            onClick: () => handleObjectClick(obj.id),
-            rotation: obj.rotation,
-            scale: obj.scale,
-            shininess: lightingSettings.shininess,
-            diffuseIntensity: lightingSettings.diffuseIntensity,
-            specularIntensity: lightingSettings.specularIntensity
-          }
+          {objects.map((obj) => {
+            const commonProps = {
+              position: obj.position,
+              color: obj.color,
+              selected: obj.selected,
+              onClick: () => handleObjectClick(obj.id),
+              rotation: obj.rotation,
+              scale: obj.scale,
+              shininess: lightingSettings.shininess,
+              diffuseIntensity: lightingSettings.diffuseIntensity,
+              specularIntensity: lightingSettings.specularIntensity
+            }
 
-          let ObjectComponent
-          switch (obj.type) {
-            case "cube":
-              ObjectComponent = Cube
-              break
-            case "pyramid":
-              ObjectComponent = Pyramid
-              break
-            case "sphere":
-              ObjectComponent = Sphere
-              break
-            case "cylinder":
-              ObjectComponent = Cylinder
-              break
-            case "torus":
-              ObjectComponent = Torus
-              break
-            case "plane":
-              ObjectComponent = Plane
-              break
-            default:
-              return null
-          }
+            let ObjectComponent
+            switch (obj.type) {
+              case "cube":
+                ObjectComponent = Cube
+                break
+              case "pyramid":
+                ObjectComponent = Pyramid
+                break
+              case "sphere":
+                ObjectComponent = Sphere
+                break
+              case "cylinder":
+                ObjectComponent = Cylinder
+                break
+              case "torus":
+                ObjectComponent = Torus
+                break
+              case "plane":
+                ObjectComponent = Plane
+                break
+              case "obj":
+                ObjectComponent = OBJModel
+                break
+              default:
+                return null
+            }
 
-          return (
-            <React.Fragment key={obj.id}>
-              <DraggableObject
-                id={obj.id}
-                position={obj.position}
-                onDrag={handleDrag}
-              >
-                <ObjectComponent {...commonProps} position={[0, 0, 0]} />
-              </DraggableObject>
-              
-              {/* Vertical Movement Gizmo for selected objects */}
-              {obj.selected && (
-                <VerticalGizmo
+            return (
+              <React.Fragment key={obj.id}>
+                <DraggableObject
+                  id={obj.id}
                   position={obj.position}
-                  visible={obj.selected}
-                  onMove={(deltaY: number) => handleVerticalMove(obj.id, deltaY)}
-                />
-              )}
-            </React.Fragment>
-          )
-        })}
+                  onDrag={handleDrag}
+                >
+                  <ObjectComponent 
+                    {...commonProps} 
+                    position={[0, 0, 0]} 
+                    url={obj.url} // For OBJ files
+                    fileName={obj.fileName} // For display
+                  />
+                </DraggableObject>
+                
+                {/* Vertical Movement Gizmo for selected objects */}
+                {obj.selected && (
+                  <VerticalGizmo
+                    position={obj.position}
+                    visible={obj.selected}
+                    onMove={(deltaY: number) => handleVerticalMove(obj.id, deltaY)}
+                  />
+                )}
+              </React.Fragment>
+            )
+          })}
 
-        <InfiniteGrid />
-        <axesHelper args={[3]} />
-        
-        {/* WASD Camera Controls */}
-        <WASDControls />
+          <InfiniteGrid />
+          <axesHelper args={[3]} />
+          
+          {/* WASD Camera Controls */}
+          <WASDControls />
 
-        <CustomOrbitControls />
+          <CustomOrbitControls />
+        </Suspense>
       </Canvas>
     </DragContext.Provider>
   )

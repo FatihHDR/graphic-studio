@@ -3,9 +3,14 @@
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Upload, RotateCcw, Box, Pyramid, Trash2, Eye, EyeOff, Circle, Cylinder, Donut, Square } from "lucide-react"
+import { useRef } from "react"
+import { toast } from "sonner"
 
 export default function ToolPanel3D() {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   const handleAddCube = () => {
     if (typeof window !== 'undefined' && (window as any).canvas3DActions) {
       (window as any).canvas3DActions.addCube()
@@ -57,6 +62,39 @@ export default function ToolPanel3D() {
   const handleHideAll = () => {
     if (typeof window !== 'undefined' && (window as any).canvas3DActions) {
       (window as any).canvas3DActions.hideAllObjects()
+    }
+  }
+
+  const handleResetCamera = () => {
+    if (typeof window !== 'undefined' && (window as any).canvas3DActions) {
+      (window as any).canvas3DActions.resetCamera()
+      toast.success('Camera reset to default position')
+    } else {
+      toast.error('Canvas not available')
+    }
+  }
+
+  const handleLoadObjFile = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click()
+    }
+  }
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file && file.name.toLowerCase().endsWith('.obj')) {
+      if (typeof window !== 'undefined' && (window as any).canvas3DActions) {
+        (window as any).canvas3DActions.loadObjFile(file)
+        toast.success(`Loading ${file.name}...`)
+      } else {
+        toast.error('Canvas not available')
+      }
+    } else {
+      toast.error('Please select a valid .obj file')
+    }
+    // Reset input value to allow loading the same file again
+    if (event.target) {
+      event.target.value = ''
     }
   }
 
@@ -138,14 +176,21 @@ export default function ToolPanel3D() {
       <div>
         <Label className="text-sm font-medium mb-2 block">Scene Controls</Label>
         <div className="space-y-2">
-          <Button variant="outline" size="sm" className="w-full justify-start">
+          <Button variant="outline" size="sm" className="w-full justify-start" onClick={handleResetCamera}>
             <RotateCcw className="w-4 h-4 mr-2" />
             Reset Camera
           </Button>
-          <Button variant="outline" size="sm" className="w-full justify-start">
+          <Button variant="outline" size="sm" className="w-full justify-start" onClick={handleLoadObjFile}>
             <Upload className="w-4 h-4 mr-2" />
             Load .obj File
           </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".obj"
+            onChange={handleFileChange}
+            style={{ display: 'none' }}
+          />
         </div>
       </div>
 
