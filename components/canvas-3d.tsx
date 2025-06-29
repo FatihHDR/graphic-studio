@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useEffect, createContext, useContext } from "react"
+import React, { useRef, useState, useEffect, createContext, useContext } from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { OrbitControls } from "@react-three/drei"
 import type { Mesh } from "three"
@@ -10,18 +10,22 @@ import * as THREE from "three"
 const DragContext = createContext<{
   isDragging: boolean
   setIsDragging: (dragging: boolean) => void
+  isVerticalDragging: boolean
+  setIsVerticalDragging: (dragging: boolean) => void
 }>({
   isDragging: false,
-  setIsDragging: () => {}
+  setIsDragging: () => {},
+  isVerticalDragging: false,
+  setIsVerticalDragging: () => {}
 })
 
 // Custom OrbitControls that can be disabled during dragging
 function CustomOrbitControls() {
-  const { isDragging } = useContext(DragContext)
+  const { isDragging, isVerticalDragging } = useContext(DragContext)
   
   return (
     <OrbitControls
-      enabled={!isDragging}
+      enabled={!isDragging && !isVerticalDragging}
       enablePan={true}
       enableZoom={true}
       enableRotate={true}
@@ -158,6 +162,15 @@ function DraggableObject({ children, position, onDrag, id }: any) {
   }, [isLocalDragging, camera, gl, dragPlane, intersection, offset, id, onDrag, setIsDragging])
 
   const onPointerDown = (event: any) => {
+    // Skip if this is a gizmo arrow (check by mesh name or parent group)
+    if (event.object && event.object.parent && event.object.parent.position) {
+      // Check if this might be a gizmo by position offset from object
+      const yOffset = Math.abs(event.object.parent.position.y - position[1])
+      if (yOffset > 1.5) { // Gizmo arrows are positioned at ±2.5 Y offset
+        return
+      }
+    }
+    
     event.stopPropagation()
     setIsLocalDragging(true)
     setIsDragging(true) // Update global drag state
@@ -498,6 +511,7 @@ function Scene() {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [selectedObjectId, setSelectedObjectId] = useState<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [isVerticalDragging, setIsVerticalDragging] = useState(false)
   
   // Lighting state
   const [lightingSettings, setLightingSettings] = useState({
@@ -530,10 +544,9 @@ function Scene() {
   const handleVerticalMove = (id: number, deltaY: number) => {
     setObjects((prev) =>
       prev.map((obj) =>
-        obj.id === id ? { 
-          ...obj, 
-          position: [obj.position[0], obj.position[1] + deltaY, obj.position[2]] 
-        } : obj
+        obj.id === id 
+          ? { ...obj, position: [obj.position[0], obj.position[1] + deltaY, obj.position[2]] }
+          : obj
       )
     )
   }
@@ -716,7 +729,7 @@ function Scene() {
   }
 
   return (
-    <DragContext.Provider value={{ isDragging, setIsDragging }}>
+    <DragContext.Provider value={{ isDragging, setIsDragging, isVerticalDragging, setIsVerticalDragging }}>
       {/* Info Panel */}
       <div className="absolute top-4 right-4 z-10 bg-white/90 dark:bg-slate-950/90 backdrop-blur-sm rounded-lg p-4 shadow-lg border dark:border-slate-800">
         <div className="text-sm text-gray-700 dark:text-slate-300">
@@ -724,9 +737,12 @@ function Scene() {
           <div>Selected: {objects.filter((o) => o.selected).length}</div>
           <div className="mt-2 pt-2 border-t border-gray-200 dark:border-slate-700">
             <div className="text-xs text-gray-500 dark:text-slate-400">
-              <div>🖱️ Click: Select object</div>
-              <div>🫳 Drag: Move object</div>
+              <div>🖱️ Click object: Select</div>
+              <div>🫳 Drag object: Move horizontally</div>
+              <div>⬆️ Green arrow: Move object up</div>
+              <div>⬇️ Red arrow: Move object down</div>
               <div>🔄 Selected objects auto-rotate</div>
+              <div>⌨️ WASD + Shift/Space: Move camera</div>
             </div>
           </div>
         </div>
@@ -788,14 +804,24 @@ function Scene() {
           }
 
           return (
-            <DraggableObject
-              key={obj.id}
-              id={obj.id}
-              position={obj.position}
-              onDrag={handleDrag}
-            >
-              <ObjectComponent {...commonProps} position={[0, 0, 0]} />
-            </DraggableObject>
+            <React.Fragment key={obj.id}>
+              <DraggableObject
+                id={obj.id}
+                position={obj.position}
+                onDrag={handleDrag}
+              >
+                <ObjectComponent {...commonProps} position={[0, 0, 0]} />
+              </DraggableObject>
+              
+              {/* Vertical Movement Gizmo for selected objects */}
+              {obj.selected && (
+                <VerticalGizmo
+                  position={obj.position}
+                  visible={obj.selected}
+                  onMove={(deltaY: number) => handleVerticalMove(obj.id, deltaY)}
+                />
+              )}
+            </React.Fragment>
           )
         })}
 
@@ -816,16 +842,29 @@ function VerticalGizmo({ position, onMove, visible }: any) {
   const upArrowRef = useRef<any>(null)
   const downArrowRef = useRef<any>(null)
   const { camera, gl } = useThree()
+  const { setIsVerticalDragging } = useContext(DragContext)
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState(0)
+  const [hoveredArrow, setHoveredArrow] = useState<'up' | 'down' | null>(null)
 
   if (!visible) return null
 
   const handleArrowPointerDown = (direction: 'up' | 'down') => (event: any) => {
     event.stopPropagation()
     setIsDragging(true)
+    setIsVerticalDragging(true) // Disable OrbitControls
     setDragStart(event.clientY)
     gl.domElement.style.cursor = 'ns-resize'
+  }
+
+  const handleArrowPointerOver = (direction: 'up' | 'down') => () => {
+    setHoveredArrow(direction)
+    gl.domElement.style.cursor = 'pointer'
+  }
+
+  const handleArrowPointerOut = () => {
+    setHoveredArrow(null)
+    gl.domElement.style.cursor = 'auto'
   }
 
   useEffect(() => {
@@ -839,6 +878,7 @@ function VerticalGizmo({ position, onMove, visible }: any) {
 
     const handleMouseUp = () => {
       setIsDragging(false)
+      setIsVerticalDragging(false) // Re-enable OrbitControls
       gl.domElement.style.cursor = 'auto'
     }
 
@@ -851,50 +891,80 @@ function VerticalGizmo({ position, onMove, visible }: any) {
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [isDragging, dragStart, onMove, gl])
+  }, [isDragging, dragStart, onMove, gl, setIsVerticalDragging])
 
   return (
     <group position={[position[0], position[1], position[2]]}>
       {/* Up Arrow */}
-      <group position={[0, 2, 0]}>
+      <group position={[0, 2.5, 0]}>
         <mesh
           ref={upArrowRef}
           onPointerDown={handleArrowPointerDown('up')}
-          onPointerOver={() => gl.domElement.style.cursor = 'pointer'}
-          onPointerOut={() => gl.domElement.style.cursor = 'auto'}
+          onPointerOver={handleArrowPointerOver('up')}
+          onPointerOut={handleArrowPointerOut}
         >
-          <coneGeometry args={[0.1, 0.3, 8]} />
-          <meshBasicMaterial color="#00ff00" />
+          <coneGeometry args={[0.15, 0.4, 8]} />
+          <meshBasicMaterial 
+            color={hoveredArrow === 'up' ? "#00ff88" : "#00aa00"} 
+            transparent
+            opacity={0.8}
+          />
         </mesh>
         {/* Arrow shaft */}
-        <mesh position={[0, -0.25, 0]}>
-          <cylinderGeometry args={[0.02, 0.02, 0.4, 8]} />
-          <meshBasicMaterial color="#00ff00" />
+        <mesh position={[0, -0.3, 0]}>
+          <cylinderGeometry args={[0.03, 0.03, 0.5, 8]} />
+          <meshBasicMaterial 
+            color={hoveredArrow === 'up' ? "#00ff88" : "#00aa00"} 
+            transparent
+            opacity={0.8}
+          />
         </mesh>
       </group>
 
       {/* Down Arrow */}
-      <group position={[0, -2, 0]} rotation={[Math.PI, 0, 0]}>
+      <group position={[0, -2.5, 0]} rotation={[Math.PI, 0, 0]}>
         <mesh
           ref={downArrowRef}
           onPointerDown={handleArrowPointerDown('down')}
-          onPointerOver={() => gl.domElement.style.cursor = 'pointer'}
-          onPointerOut={() => gl.domElement.style.cursor = 'auto'}
+          onPointerOver={handleArrowPointerOver('down')}
+          onPointerOut={handleArrowPointerOut}
         >
-          <coneGeometry args={[0.1, 0.3, 8]} />
-          <meshBasicMaterial color="#ff0000" />
+          <coneGeometry args={[0.15, 0.4, 8]} />
+          <meshBasicMaterial 
+            color={hoveredArrow === 'down' ? "#ff4444" : "#cc0000"} 
+            transparent
+            opacity={0.8}
+          />
         </mesh>
         {/* Arrow shaft */}
-        <mesh position={[0, -0.25, 0]}>
-          <cylinderGeometry args={[0.02, 0.02, 0.4, 8]} />
-          <meshBasicMaterial color="#ff0000" />
+        <mesh position={[0, -0.3, 0]}>
+          <cylinderGeometry args={[0.03, 0.03, 0.5, 8]} />
+          <meshBasicMaterial 
+            color={hoveredArrow === 'down' ? "#ff4444" : "#cc0000"} 
+            transparent
+            opacity={0.8}
+          />
         </mesh>
       </group>
 
       {/* Vertical line indicator */}
       <mesh>
-        <cylinderGeometry args={[0.01, 0.01, 4, 8]} />
-        <meshBasicMaterial color="#888888" opacity={0.3} transparent />
+        <cylinderGeometry args={[0.008, 0.008, 4.5, 8]} />
+        <meshBasicMaterial 
+          color="#ffff00" 
+          transparent 
+          opacity={0.5}
+        />
+      </mesh>
+
+      {/* Center handle */}
+      <mesh>
+        <sphereGeometry args={[0.08, 16, 16]} />
+        <meshBasicMaterial 
+          color="#ffff00" 
+          transparent 
+          opacity={0.7}
+        />
       </mesh>
     </group>
   )
