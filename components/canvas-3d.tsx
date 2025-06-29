@@ -194,9 +194,11 @@ interface Object3DData {
   color: string
   selected: boolean
   isDragging?: boolean
+  rotation?: { x: number; y: number; z: number }
+  scale?: { x: number; y: number; z: number }
 }
 
-function Cube({ position, color, selected, onClick }: any) {
+function Cube({ position, color, selected, onClick, rotation, scale, shininess }: any) {
   const meshRef = useRef<Mesh>(null)
 
   useFrame((state, delta) => {
@@ -205,10 +207,29 @@ function Cube({ position, color, selected, onClick }: any) {
     }
   })
 
+  // Apply custom rotation and scale
+  useEffect(() => {
+    if (meshRef.current) {
+      if (rotation) {
+        meshRef.current.rotation.set(
+          (rotation.x * Math.PI) / 180,
+          (rotation.y * Math.PI) / 180,
+          (rotation.z * Math.PI) / 180
+        )
+      }
+      if (scale) {
+        meshRef.current.scale.set(scale.x, scale.y, scale.z)
+      }
+    }
+  }, [rotation, scale])
+
   return (
     <mesh ref={meshRef} position={position} onClick={onClick}>
       <boxGeometry args={[1, 1, 1]} />
-      <meshPhongMaterial color={selected ? "#ff6b6b" : color} />
+      <meshPhongMaterial 
+        color={selected ? "#ff6b6b" : color} 
+        shininess={shininess || 32}
+      />
       {selected && (
         <mesh>
           <boxGeometry args={[1.1, 1.1, 1.1]} />
@@ -219,7 +240,7 @@ function Cube({ position, color, selected, onClick }: any) {
   )
 }
 
-function Pyramid({ position, color, selected, onClick }: any) {
+function Pyramid({ position, color, selected, onClick, rotation, scale, shininess }: any) {
   const meshRef = useRef<Mesh>(null)
 
   useFrame((state, delta) => {
@@ -229,10 +250,28 @@ function Pyramid({ position, color, selected, onClick }: any) {
     }
   })
 
+  useEffect(() => {
+    if (meshRef.current) {
+      if (rotation) {
+        meshRef.current.rotation.set(
+          (rotation.x * Math.PI) / 180,
+          (rotation.y * Math.PI) / 180,
+          (rotation.z * Math.PI) / 180
+        )
+      }
+      if (scale) {
+        meshRef.current.scale.set(scale.x, scale.y, scale.z)
+      }
+    }
+  }, [rotation, scale])
+
   return (
     <mesh ref={meshRef} position={position} onClick={onClick}>
       <coneGeometry args={[0.8, 1.6, 4]} />
-      <meshPhongMaterial color={selected ? "#4ecdc4" : color} />
+      <meshPhongMaterial 
+        color={selected ? "#4ecdc4" : color} 
+        shininess={shininess || 32}
+      />
       {selected && (
         <mesh>
           <coneGeometry args={[0.9, 1.7, 4]} />
@@ -243,7 +282,7 @@ function Pyramid({ position, color, selected, onClick }: any) {
   )
 }
 
-function Sphere({ position, color, selected, onClick }: any) {
+function Sphere({ position, color, selected, onClick, rotation, scale, shininess }: any) {
   const meshRef = useRef<Mesh>(null)
 
   useFrame((state, delta) => {
@@ -253,10 +292,28 @@ function Sphere({ position, color, selected, onClick }: any) {
     }
   })
 
+  useEffect(() => {
+    if (meshRef.current) {
+      if (rotation) {
+        meshRef.current.rotation.set(
+          (rotation.x * Math.PI) / 180,
+          (rotation.y * Math.PI) / 180,
+          (rotation.z * Math.PI) / 180
+        )
+      }
+      if (scale) {
+        meshRef.current.scale.set(scale.x, scale.y, scale.z)
+      }
+    }
+  }, [rotation, scale])
+
   return (
     <mesh ref={meshRef} position={position} onClick={onClick}>
       <sphereGeometry args={[0.8, 32, 32]} />
-      <meshPhongMaterial color={selected ? "#10b981" : color} />
+      <meshPhongMaterial 
+        color={selected ? "#10b981" : color} 
+        shininess={shininess || 32}
+      />
       {selected && (
         <mesh>
           <sphereGeometry args={[0.9, 16, 16]} />
@@ -267,7 +324,7 @@ function Sphere({ position, color, selected, onClick }: any) {
   )
 }
 
-function Cylinder({ position, color, selected, onClick }: any) {
+function Cylinder({ position, color, selected, onClick, rotation, scale, shininess }: any) {
   const meshRef = useRef<Mesh>(null)
 
   useFrame((state, delta) => {
@@ -276,10 +333,28 @@ function Cylinder({ position, color, selected, onClick }: any) {
     }
   })
 
+  useEffect(() => {
+    if (meshRef.current) {
+      if (rotation) {
+        meshRef.current.rotation.set(
+          (rotation.x * Math.PI) / 180,
+          (rotation.y * Math.PI) / 180,
+          (rotation.z * Math.PI) / 180
+        )
+      }
+      if (scale) {
+        meshRef.current.scale.set(scale.x, scale.y, scale.z)
+      }
+    }
+  }, [rotation, scale])
+
   return (
     <mesh ref={meshRef} position={position} onClick={onClick}>
       <cylinderGeometry args={[0.6, 0.6, 1.5, 32]} />
-      <meshPhongMaterial color={selected ? "#f59e0b" : color} />
+      <meshPhongMaterial 
+        color={selected ? "#f59e0b" : color} 
+        shininess={shininess || 32}
+      />
       {selected && (
         <mesh>
           <cylinderGeometry args={[0.7, 0.7, 1.6, 16]} />
@@ -290,7 +365,7 @@ function Cylinder({ position, color, selected, onClick }: any) {
   )
 }
 
-function Torus({ position, color, selected, onClick }: any) {
+function Torus({ position, color, selected, onClick, rotation, scale, shininess }: any) {
   const meshRef = useRef<Mesh>(null)
 
   useFrame((state, delta) => {
@@ -300,10 +375,28 @@ function Torus({ position, color, selected, onClick }: any) {
     }
   })
 
+  useEffect(() => {
+    if (meshRef.current) {
+      if (rotation) {
+        meshRef.current.rotation.set(
+          (rotation.x * Math.PI) / 180,
+          (rotation.y * Math.PI) / 180,
+          (rotation.z * Math.PI) / 180
+        )
+      }
+      if (scale) {
+        meshRef.current.scale.set(scale.x, scale.y, scale.z)
+      }
+    }
+  }, [rotation, scale])
+
   return (
     <mesh ref={meshRef} position={position} onClick={onClick}>
       <torusGeometry args={[0.8, 0.3, 16, 100]} />
-      <meshPhongMaterial color={selected ? "#8b5cf6" : color} />
+      <meshPhongMaterial 
+        color={selected ? "#8b5cf6" : color} 
+        shininess={shininess || 32}
+      />
       {selected && (
         <mesh>
           <torusGeometry args={[0.9, 0.35, 8, 50]} />
@@ -314,7 +407,7 @@ function Torus({ position, color, selected, onClick }: any) {
   )
 }
 
-function Plane({ position, color, selected, onClick }: any) {
+function Plane({ position, color, selected, onClick, rotation, scale, shininess }: any) {
   const meshRef = useRef<Mesh>(null)
 
   useFrame((state, delta) => {
@@ -323,10 +416,29 @@ function Plane({ position, color, selected, onClick }: any) {
     }
   })
 
+  useEffect(() => {
+    if (meshRef.current) {
+      if (rotation) {
+        meshRef.current.rotation.set(
+          (rotation.x * Math.PI) / 180,
+          (rotation.y * Math.PI) / 180,
+          (rotation.z * Math.PI) / 180
+        )
+      }
+      if (scale) {
+        meshRef.current.scale.set(scale.x, scale.y, scale.z)
+      }
+    }
+  }, [rotation, scale])
+
   return (
     <mesh ref={meshRef} position={position} onClick={onClick}>
       <planeGeometry args={[1.5, 1.5]} />
-      <meshPhongMaterial color={selected ? "#ec4899" : color} side={2} />
+      <meshPhongMaterial 
+        color={selected ? "#ec4899" : color} 
+        side={2} 
+        shininess={shininess || 32}
+      />
       {selected && (
         <mesh>
           <planeGeometry args={[1.6, 1.6]} />
@@ -386,6 +498,17 @@ function Scene() {
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const [selectedObjectId, setSelectedObjectId] = useState<number | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  
+  // Lighting state
+  const [lightingSettings, setLightingSettings] = useState({
+    shadingModel: 'phong' as 'phong' | 'gouraud',
+    ambientIntensity: 0.3,
+    directionalIntensity: 1.0,
+    directionalPosition: { x: 10, y: 10, z: 5 },
+    pointIntensity: 0.5,
+    pointPosition: { x: -10, y: -10, z: -5 },
+    shininess: 32
+  })
 
   const handleObjectClick = (id: number) => {
     setObjects((prev) =>
@@ -400,6 +523,17 @@ function Scene() {
     setObjects((prev) =>
       prev.map((obj) =>
         obj.id === id ? { ...obj, position: newPosition } : obj
+      )
+    )
+  }
+
+  const handleVerticalMove = (id: number, deltaY: number) => {
+    setObjects((prev) =>
+      prev.map((obj) =>
+        obj.id === id ? { 
+          ...obj, 
+          position: [obj.position[0], obj.position[1] + deltaY, obj.position[2]] 
+        } : obj
       )
     )
   }
@@ -500,9 +634,69 @@ function Scene() {
     setObjects((prev) => prev.map((obj) => ({ ...obj, selected: false })))
   }
 
+  const applyTransform = (type: 'translate' | 'rotate' | 'scale', values: any) => {
+    const selectedObjects = objects.filter(obj => obj.selected)
+    if (selectedObjects.length === 0) return
+
+    setObjects((prev) => prev.map((obj) => {
+      if (!obj.selected) return obj
+
+      const newObj = { ...obj }
+      
+      if (type === 'translate') {
+        newObj.position = [
+          obj.position[0] + values.x,
+          obj.position[1] + values.y,
+          obj.position[2] + values.z
+        ]
+      } else if (type === 'rotate') {
+        // Store rotation values in object (we'll implement visual rotation in the mesh components)
+        newObj.rotation = {
+          x: (obj.rotation?.x || 0) + (values.x || 0),
+          y: (obj.rotation?.y || 0) + (values.y || 0),
+          z: (obj.rotation?.z || 0) + (values.z || 0)
+        }
+      } else if (type === 'scale') {
+        newObj.scale = {
+          x: values.x,
+          y: values.y,
+          z: values.z
+        }
+      }
+      
+      return newObj
+    }))
+  }
+
+  const resetTransform = () => {
+    setObjects((prev) => prev.map((obj) => {
+      if (!obj.selected) return obj
+      return {
+        ...obj,
+        rotation: { x: 0, y: 0, z: 0 },
+        scale: { x: 1, y: 1, z: 1 }
+      }
+    }))
+  }
+
+  const centerObject = () => {
+    setObjects((prev) => prev.map((obj) => {
+      if (!obj.selected) return obj
+      return {
+        ...obj,
+        position: [0, 0, 0]
+      }
+    }))
+  }
+
+  // Update lighting settings from panel
+  const updateLighting = (newSettings: typeof lightingSettings) => {
+    setLightingSettings(newSettings)
+  }
+
   // Make functions available globally for the tool panel
   if (typeof window !== 'undefined') {
-    (window as any).canvas3DActions = {
+    ;(window as any).canvas3DActions = {
       addCube,
       addPyramid,
       addSphere,
@@ -512,7 +706,13 @@ function Scene() {
       deleteSelected,
       clearAllObjects,
       hideAllObjects,
+      applyTransform,
+      resetTransform,
+      centerObject,
     }
+    
+    // Make lighting update function available globally
+    ;(window as any).updateLighting = updateLighting
   }
 
   return (
@@ -534,16 +734,33 @@ function Scene() {
 
       {/* 3D Scene */}
       <Canvas camera={{ position: [5, 5, 5], fov: 75 }}>
-        <ambientLight intensity={0.3} />
-        <directionalLight position={[10, 10, 5]} intensity={1} />
-        <pointLight position={[-10, -10, -5]} intensity={0.5} />
+        <ambientLight intensity={lightingSettings.ambientIntensity} />
+        <directionalLight 
+          position={[
+            lightingSettings.directionalPosition.x, 
+            lightingSettings.directionalPosition.y, 
+            lightingSettings.directionalPosition.z
+          ]} 
+          intensity={lightingSettings.directionalIntensity} 
+        />
+        <pointLight 
+          position={[
+            lightingSettings.pointPosition.x, 
+            lightingSettings.pointPosition.y, 
+            lightingSettings.pointPosition.z
+          ]} 
+          intensity={lightingSettings.pointIntensity} 
+        />
 
         {objects.map((obj) => {
           const commonProps = {
             position: obj.position,
             color: obj.color,
             selected: obj.selected,
-            onClick: () => handleObjectClick(obj.id)
+            onClick: () => handleObjectClick(obj.id),
+            rotation: obj.rotation,
+            scale: obj.scale,
+            shininess: lightingSettings.shininess
           }
 
           let ObjectComponent
@@ -591,6 +808,95 @@ function Scene() {
         <CustomOrbitControls />
       </Canvas>
     </DragContext.Provider>
+  )
+}
+
+// Vertical Movement Gizmo Component
+function VerticalGizmo({ position, onMove, visible }: any) {
+  const upArrowRef = useRef<any>(null)
+  const downArrowRef = useRef<any>(null)
+  const { camera, gl } = useThree()
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragStart, setDragStart] = useState(0)
+
+  if (!visible) return null
+
+  const handleArrowPointerDown = (direction: 'up' | 'down') => (event: any) => {
+    event.stopPropagation()
+    setIsDragging(true)
+    setDragStart(event.clientY)
+    gl.domElement.style.cursor = 'ns-resize'
+  }
+
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!isDragging) return
+      
+      const deltaY = (dragStart - event.clientY) * 0.01 // Scale movement
+      onMove(deltaY)
+      setDragStart(event.clientY)
+    }
+
+    const handleMouseUp = () => {
+      setIsDragging(false)
+      gl.domElement.style.cursor = 'auto'
+    }
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isDragging, dragStart, onMove, gl])
+
+  return (
+    <group position={[position[0], position[1], position[2]]}>
+      {/* Up Arrow */}
+      <group position={[0, 2, 0]}>
+        <mesh
+          ref={upArrowRef}
+          onPointerDown={handleArrowPointerDown('up')}
+          onPointerOver={() => gl.domElement.style.cursor = 'pointer'}
+          onPointerOut={() => gl.domElement.style.cursor = 'auto'}
+        >
+          <coneGeometry args={[0.1, 0.3, 8]} />
+          <meshBasicMaterial color="#00ff00" />
+        </mesh>
+        {/* Arrow shaft */}
+        <mesh position={[0, -0.25, 0]}>
+          <cylinderGeometry args={[0.02, 0.02, 0.4, 8]} />
+          <meshBasicMaterial color="#00ff00" />
+        </mesh>
+      </group>
+
+      {/* Down Arrow */}
+      <group position={[0, -2, 0]} rotation={[Math.PI, 0, 0]}>
+        <mesh
+          ref={downArrowRef}
+          onPointerDown={handleArrowPointerDown('down')}
+          onPointerOver={() => gl.domElement.style.cursor = 'pointer'}
+          onPointerOut={() => gl.domElement.style.cursor = 'auto'}
+        >
+          <coneGeometry args={[0.1, 0.3, 8]} />
+          <meshBasicMaterial color="#ff0000" />
+        </mesh>
+        {/* Arrow shaft */}
+        <mesh position={[0, -0.25, 0]}>
+          <cylinderGeometry args={[0.02, 0.02, 0.4, 8]} />
+          <meshBasicMaterial color="#ff0000" />
+        </mesh>
+      </group>
+
+      {/* Vertical line indicator */}
+      <mesh>
+        <cylinderGeometry args={[0.01, 0.01, 4, 8]} />
+        <meshBasicMaterial color="#888888" opacity={0.3} transparent />
+      </mesh>
+    </group>
   )
 }
 
